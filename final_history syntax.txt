@@ -1,0 +1,121 @@
+INSERT INTO
+  employee_history.emptabhis
+SELECT
+  PARSE_DATE ("%d/%m/%Y", SNAPSHOTDATE) AS SNAPSHOTDATE,
+  SAFE_CAST (EMPLID AS INT64),
+  EMPL_CLASS,
+  CAST (POSITION_NBR AS int64),
+  POSITION_DESCRIPTION,
+  DEPTID string,
+  DIRECOTRATE_DESCRIPTION,
+  DEPARTMENT_DESCRIPTION,
+  ACCT_CD AS int64,
+  LOCATION,
+  CAST (ORG_LEVEL AS INT64),
+  L1_EMPLID,
+  L1_NAME,
+  L1_POSITION_NBR,
+  L1_POSITION_NAME,
+  L2_EMPLID,
+  L2_NAME,
+  L2_POSITION_NBR,
+  L2_POSITION_NAME,
+  L3_EMPLID,
+  L3_NAME,
+  L3_POSITION_NBR,
+  L3_POSITION_NAME,
+  CAST (LEVEL AS int64),
+  PARSE_DATE ("%Y/%m/%d",HIRE_DATE),
+  PARSE_DATE ("%m/%d/%Y",REHIRE_DT),
+  PARSE_DATE ("%Y/%m/%d",SERVICE_DT),
+  PARSE_DATE ("%Y/%m/%d",SERVICE_DATE),
+  CURRENT_TIMESTAMP() AS LAST_UPDATED,
+  "INDIA" AS CUNTRY_CODE,
+  "TS" AS STATE_CODE
+FROM
+  `employee_stage.emptabstg02`;
+  
+==========================================================================================================
+  
+  #sql command to create audit stage table
+CREATE TABLE
+  empaudit_stage.empaudstg( datasetname string,
+    tablename string,
+    total_records int64,
+    audit_date timestamp,
+    audit_by string);
+==========================================================================================================
+
+
+#sql command to create audit history table
+
+  CREATE TABLE
+  empaudit_history.empaudhis( datasetname string,
+    tablename string,
+    total_records int64,
+    audit_date timestamp,
+    audit_by string);
+===========================================================================================================
+
+  #sql command to insert values into audit_stage table
+INSERT INTO
+  'usecase-01.empaudit_stage.empaudstg'
+SELECT
+  "employee_stage" AS datasetname,
+  "emptabstg02" AS tablename,
+  COUNT(*) AS total_records,
+  CURRENT_TIMESTAMP() AS audit_date,
+  "RAM_5878" AS audit_by
+FROM
+  'usecase-01.employee_stage.emptabstg02'
+  
+  INSERT INTO
+  empaudit_stage.empaudstg
+SELECT
+  "employee_stage" AS datasetname,
+  "emptabstg02" AS tablename,
+  COUNT(*) AS total_records,
+  CURRENT_TIMESTAMP() AS audit_date,
+  "RAM_5878" AS audit_by
+FROM
+  employee_stage.emptabstg02
+  
+===============================================================================================================
+
+#sql command to insert values into audit_history table
+INSERT INTO
+  'usecase-01.empaudit_history.empaudhis'
+SELECT
+  "employee_history" AS datasetname,
+  "emptabhis" AS tablename,
+  COUNT(*) AS total_records,
+  CURRENT_TIMESTAMP() AS audit_date,
+  "RAM_5878" AS audit_by
+FROM
+  'usecase-01.employee_history.emptabhis'
+  
+  INSERT INTO
+  empaudit_history.empaudhis
+SELECT
+  "employee_history" AS datasetname,
+  "emptabhis" AS tablename,
+  COUNT(*) AS total_records,
+  CURRENT_TIMESTAMP() AS audit_date,
+  "RAM_5878" AS audit_by
+FROM
+  employee_history.emptabhis
+  
+====================================================================================================
+
+#sql command to create dataset for views
+CREATE SCHEMA
+  auth_views_employee
+=================================================================================
+
+#sql command to create views from history dataset
+create view 
+auth_views_employee.view01 as
+select *
+from employee_history.emptabstg02
+where
+student_id is not null 
